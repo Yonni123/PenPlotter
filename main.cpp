@@ -14,6 +14,22 @@ potrace_bitmap_t *potrace_bitmap_create_from_array(int width, int height, unsign
     return bitmap;
 }
 
+// This function saves a bitmap as a .bmp file
+void save_bitmap(potrace_bitmap_t *map){
+    // Create a new image
+    cv::Mat image(map->h, map->w, CV_8UC1);
+
+    // Copy the bitmap data to the image
+    for (int i = 0; i < map->h; i++) {
+        for (int j = 0; j < map->w; j++) {
+            image.at<uchar>(i, j) = map->map[i * map->w + j];
+        }
+    }
+
+    // Save the image
+    cv::imwrite("output.bmp", image);
+}
+
 int main() {
     // Load and display an image using OpenCV
     cv::Mat image = cv::imread("../TestImages/edges.png", cv::IMREAD_COLOR);
@@ -40,6 +56,22 @@ int main() {
     // Convert the image to a bitmap
     potrace_bitmap_t *bitmap = potrace_bitmap_create_from_array(thresholdedImage.cols, thresholdedImage.rows,
                                                                 thresholdedImage.data, thresholdedImage.step);
+
+    save_bitmap(bitmap);
+    
+    // Create a new potrace_state_t
+    potrace_param_t *param = potrace_param_default();
+    param->turdsize = 2;
+    param->turnpolicy = POTRACE_TURNPOLICY_BLACK;
+    param->alphamax = 0.1;
+    param->opticurve = 1;
+    param->opttolerance = 0.2;
+    param->progress.callback = NULL;
+    param->progress.data = NULL;
+    param->progress.min = 0.0;
+    param->progress.max = 1.0;
+    param->progress.epsilon = 0.0;
+    potrace_state_t *state = potrace_trace(param, bitmap);
 
     return 0;
 }
