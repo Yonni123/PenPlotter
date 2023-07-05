@@ -1,14 +1,16 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <potracelib.h>
+#include <bitset>
 
 using namespace std;
 
 potrace_bitmap_t *potrace_bitmap_from_mat(cv::Mat image) {
     potrace_bitmap_t *bitmap = (potrace_bitmap_t *) malloc(sizeof(potrace_bitmap_t));
-    bitmap->w = image.cols +200;    // Width of the bitmap
+    bitmap->w = image.cols;    // Width of the bitmap
     bitmap->h = image.rows;   // Height of the bitmap
     int N = sizeof(potrace_word) * 8;  // Number of bits per word, every bit is a pixel
+    cout << "N: " << N << endl;  // N = 32
 
     // Make the width a multiple of N by padding
     cout << "old w: " << bitmap->w << endl;  // 3
@@ -32,6 +34,7 @@ potrace_bitmap_t *potrace_bitmap_from_mat(cv::Mat image) {
     // Loop through all pixels and create potrace_words
     int current_word = 0;
     int current_bit = 0;
+    bitmap->map[current_word] = 0;  
     for(int i=image.rows-1; i>=0; i--){     // Bottom to top
         for(int j=0; j<bitmap->w; j++){    // Left to right
             // Get the pixel value (0 or 1)
@@ -41,11 +44,11 @@ potrace_bitmap_t *potrace_bitmap_from_mat(cv::Mat image) {
             }
             
             // Set the bit in the potrace_word if the pixel is set
-            potrace_word shift = (1 << (N-1-current_bit));  // Create a mask
+            potrace_word mask = (1ULL << (N-1-current_bit));
             if(pixel == 1){
-                bitmap->map[current_word] |= shift;  // Set the bit
-            } else {
-                bitmap->map[current_word] &= ~shift;  // Clear the bit
+                bitmap->map[current_word] |= mask;
+            }else{
+                bitmap->map[current_word] &= ~mask;
             }
 
             // Increment the current bit
@@ -53,15 +56,10 @@ potrace_bitmap_t *potrace_bitmap_from_mat(cv::Mat image) {
             if(current_bit == N){
                 current_bit = 0;
                 current_word++;
-                
-                // print the potrace_word for debugging
-                cout << bitmap->map[current_word-1] << " ";
+                bitmap->map[current_word] = 0;
             }
         }
-        cout << endl;
     }
-
-
     return bitmap;
 }
 
