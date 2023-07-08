@@ -17,16 +17,12 @@ potrace_bitmap_t potrace_bitmap_from_mat(Mat image)
     int wWithPad = (bitmap.w / N + 1) * N;  // Width of the bitmap with padding
 
     bitmap.dy = wWithPad / N;               // Number of words per scanline
-    cout << bitmap.dy << endl;
 
     // Allocate memory for the bitmap, we need dy*h potrace_words
     bitmap.map = new potrace_word[bitmap.dy * bitmap.h];
-    cout << bitmap.dy * bitmap.h << endl;
 
     // Invert the image since potrace uses white for background (0) and black for foreground (1)
     bitwise_not(image, image);
-
-    cout << "going into othe loop" << endl;
 
     int currentWord = 0;    // Current word index in the map array
     int currentBit = 0;     // Current bit index in the current word (0 is most significant (left) bit)
@@ -58,27 +54,24 @@ potrace_bitmap_t potrace_bitmap_from_mat(Mat image)
     return bitmap;
 }
 
-Mat mat_from_potrace_bitmap(potrace_bitmap_t* bitmap) {
+Mat mat_from_potrace_bitmap(potrace_bitmap_t bitmap) {
     int N = sizeof(potrace_word) * 8; // Number of bits per word, every bit is a pixel
 
     // Create an empty Mat object with the desired size and type
-    //Mat image(bitmap->h, bitmap->w, CV_8UC1, Scalar(0));
+    Mat image(bitmap.h, bitmap.w, CV_8UC1);
 
     // Loop through all pixels in the Potrace bitmap
-    for (int y = 0; y < bitmap->h; y++) { // Top to bottom
-        for (int x = 0; x < bitmap->w; x++) { // Left to right
-            // Get the pixel value from the Potrace bitmap using the formula
-            int pixel = ((bitmap->map + (y * bitmap->dy))[x / N] & (1ULL << (N - 1 - x % N))) ? 0 : 255;
+    for (int i = 0; i < bitmap.h; i++) {
+        for (int j = 0; j < bitmap.w; j++) {
+            potrace_word pixel = ((bitmap.map + (i * bitmap.dy))[j / N] & (1ULL << (N - 1 - j % N))) ? 0 : 255;
+            uchar pixel_char = static_cast<uchar>(pixel);
 
-            // Set the pixel value in the OpenCV Mat
-            //image.at<uchar>(bitmap->h - 1 - y, x) = pixel;
-            cout << pixel/255 << " ";
+            // Set the pixel value in the image
+            image.at<uchar>(i, j) = pixel_char;
         }
-        cout << endl;
     }
 
-    //return image;
-    return Mat();
+    return image;
 }
 
 
@@ -104,15 +97,16 @@ int main()
 
     // Convert the image to a bitmap
     potrace_bitmap_t bitmap = potrace_bitmap_from_mat(thresholdedImage);
-    cout << "bitmap created" << endl;
 
-    // Display the bitmap
-    //Mat out = mat_from_potrace_bitmap(bitmap);
-    //imshow("bitmap", out);
-    //waitKey(0);
+    // Create a parameter structure with default values
+    potrace_param_t* param = potrace_param_default();
 
-    Mat clone = image.clone();
-    imshow("clone", clone);
+    // Trace the bitmap to a path
+    potrace_state_t* state = potrace_trace(param, &bitmap);
+
+    // Convert the bitmap back to a Mat
+    Mat tracedImage = mat_from_potrace_bitmap(bitmap);
+    imshow("Traced image", tracedImage);
     waitKey(0);
 
     return 0;
