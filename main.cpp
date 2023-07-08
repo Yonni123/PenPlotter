@@ -86,28 +86,22 @@ int main()
         std::cout << "Failed to load image." << std::endl;
         return 1;
     }
-
-    // Convert image to grayscale
-    Mat grayImage;
-    cvtColor(image, grayImage, COLOR_BGR2GRAY);
-
-    // Perform thresholding
-    Mat thresholdedImage;
-    threshold(grayImage, thresholdedImage, 128, 255, THRESH_BINARY);
+    cvtColor(image, image, COLOR_BGR2GRAY); // Convert the image to grayscale
+    threshold(image, image, 128, 255, THRESH_BINARY);   // Threshold the image
 
     // Convert the image to a bitmap
-    potrace_bitmap_t bitmap = potrace_bitmap_from_mat(thresholdedImage);
+    potrace_bitmap_t bitmap = potrace_bitmap_from_mat(image);
 
     // Create a parameter structure with default values
     potrace_param_t* param = potrace_param_default();
 
     // Trace the bitmap to a path
     potrace_state_t* state = potrace_trace(param, &bitmap);
+    if(state->status == POTRACE_STATUS_OK)
+        cout << "Potrace trace successful" << endl;
+    else cout << "Potrace trace failed" << endl;
 
-    // Convert the bitmap back to a Mat
-    Mat tracedImage = mat_from_potrace_bitmap(bitmap);
-    imshow("Traced image", tracedImage);
-    waitKey(0);
+    
 
     return 0;
 }
