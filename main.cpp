@@ -17,6 +17,7 @@ potrace_bitmap_t potrace_bitmap_from_mat(Mat image)
     int wWithPad = (bitmap.w / N + 1) * N;  // Width of the bitmap with padding
 
     bitmap.dy = wWithPad / N;               // Number of words per scanline
+    cout << bitmap.dy << endl;
 
     // Allocate memory for the bitmap, we need dy*h potrace_words
     bitmap.map = new potrace_word[bitmap.dy * bitmap.h];
@@ -25,10 +26,10 @@ potrace_bitmap_t potrace_bitmap_from_mat(Mat image)
     // Invert the image since potrace uses white for background (0) and black for foreground (1)
     bitwise_not(image, image);
 
-    cout << "going int othe loop" << endl;
+    cout << "going into othe loop" << endl;
 
     int currentWord = 0;    // Current word index in the map array
-    int currentBit = 0;     // Current bit index in the current word
+    int currentBit = 0;     // Current bit index in the current word (0 is most significant (left) bit)
     bitmap.map[currentWord] = 0;    // Initialize the first word to 0
     for (int i = 0; i < image.rows; i++) {
         for (int j = 0; j < image.cols; j++) {
@@ -47,12 +48,11 @@ potrace_bitmap_t potrace_bitmap_from_mat(Mat image)
                 bitmap.map[currentWord] = 0;    // Initialize the next word to 0
             }
         }
-        // Since every scanLine changes the word, we need to move to the next word
-        // Since we sat the next word to 0, we don't need to do anything else
+        // Since every scanLine has dy words, we pad the remaining bit of currentWord with 0
+        // Since we sat the word to 0, we just need to go to next word
         // The bits that we didn't visit are already 0
         currentWord++;  // Move to the next word
         currentBit = 0;
-        if(i == 1) break;   // Only do the first few row for debugging
     }
 
     return bitmap;
@@ -93,20 +93,14 @@ int main()
         std::cout << "Failed to load image." << std::endl;
         return 1;
     }
-    imshow("image", image);
-    waitKey(0);
 
     // Convert image to grayscale
     Mat grayImage;
     cvtColor(image, grayImage, COLOR_BGR2GRAY);
-    imshow("grayImage", grayImage);
-    waitKey(0);
 
     // Perform thresholding
     Mat thresholdedImage;
     threshold(grayImage, thresholdedImage, 128, 255, THRESH_BINARY);
-    imshow("thresholdedImage", thresholdedImage);
-    waitKey(0);
 
     // Convert the image to a bitmap
     potrace_bitmap_t bitmap = potrace_bitmap_from_mat(thresholdedImage);
