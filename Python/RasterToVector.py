@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Load the image and convert it to black and white
-image = Image.open("TestImages/circle.png").convert("L")
+image = Image.open("../TestImages/circle.png").convert("L")
 
 # Convert the image to a numpy array
 data = np.array(image)

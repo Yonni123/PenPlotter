@@ -80,7 +80,7 @@ Mat mat_from_potrace_bitmap(potrace_bitmap_t bitmap) {
 int main()
 {
     // Load and display an image using OpenCV
-    Mat image = imread("../TestImages/edges.png", IMREAD_COLOR);
+    Mat image = imread("../TestImages/circle.png", IMREAD_COLOR);
     if (image.empty())
     {
         std::cout << "Failed to load image." << std::endl;
