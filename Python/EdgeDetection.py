@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-input_image = "../TestImages/nami.jpg"
+input_image = "../TestImages/mikasaedge.jpg"
 
 # Callback function for trackbar
 def update_threshold(val):
