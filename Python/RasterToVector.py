@@ -42,7 +42,7 @@ def to_polygons(img):
 
     return polygons
 
-def draw_polygons(polygons, show_points=False, random_colors=False):
+def draw_polygons(polygons, show_points=False, random_colors=False, plt=plt):
     colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']    # Pretty sure there is a less lazy way to do this
     for polygon in polygons:
         if random_colors:
@@ -69,10 +69,13 @@ def draw_polygons(polygons, show_points=False, random_colors=False):
                 markersize=1
             )
 
+    plt.gca().set_aspect('equal', adjustable='box')
+
 
 if __name__ == "__main__":
     IMAGE_PATH = "../TestImages/mikasaedge.jpg"
     data = cv2.imread(IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
     polygons = to_polygons(data)
     draw_polygons(polygons, show_points=False, random_colors=False)
+    plt.grid()
     plt.show()

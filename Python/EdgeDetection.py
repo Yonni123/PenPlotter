@@ -1,12 +1,15 @@
 import cv2
 import numpy as np
 
+original_image = None
+
 # Callback function for trackbar
 def update_threshold(val):
+    global original_image
     threshold1 = cv2.getTrackbarPos('Threshold', 'Canny Edge Detection')
     threshold2 = 2 * threshold1
     thickness = cv2.getTrackbarPos('Thickness', 'Canny Edge Detection')
-    edges = cv2.Canny(image, threshold1, threshold2)
+    edges = cv2.Canny(original_image, threshold1, threshold2)
 
     # make edges thicker
     kernel = np.ones((2, 2), np.uint8)
@@ -18,6 +21,7 @@ def update_threshold(val):
     cv2.imshow('Canny Edge Detection', edges)
 
 def edge_detect_live(image):
+    global original_image
     if len(image.shape) == 3:   # If the image is not grayscale, convert it to grayscale
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -39,6 +43,7 @@ def edge_detect_live(image):
     edges = cv2.Canny(image, threshold1, threshold2)
     edges = cv2.bitwise_not(edges)
     cv2.imshow('Canny Edge Detection', edges)
+    original_image = image
 
     # Wait until the user presses 'Esc' key
     while True:
