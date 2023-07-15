@@ -9,7 +9,7 @@ def to_polygons(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
         gray = img
-    data = gray > 128  # Convert to 2D boolean array
+    data = gray < 128  # Convert to 2D boolean array
     data = np.flipud(data)  # Flip the image vertically, since Potrace's origin is in the top-left corner
     bmp = potrace.Bitmap(data)
     path = bmp.trace(
@@ -44,7 +44,7 @@ def to_polygons(img):
     return polygons
 
 
-def draw_polygons(polygons, show_points=False, random_colors=False, plt=plt):
+def draw_polygons(polygons, show_points=False, random_colors=False, ax=plt):
     colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']  # Pretty sure there is a less lazy way to do this
     for polygon in polygons:
         if random_colors:
@@ -52,32 +52,43 @@ def draw_polygons(polygons, show_points=False, random_colors=False, plt=plt):
         else:
             color = 'r'
         polygon = np.array(polygon)
-        plt.plot(
+        ax.plot(
             polygon[:, 0],  # x-coordinates.
             polygon[:, 1],  # y-coordinates.
             color + '-'  # Styling (blue, solid line).
         )
         # Draw a line between the first and last points.
-        plt.plot(
+        ax.plot(
             [polygon[0, 0], polygon[-1, 0]],  # x-coordinates of first and last points.
             [polygon[0, 1], polygon[-1, 1]],  # y-coordinates of first and last points.
             color + '-'  # Styling (blue, solid line).
         )
         if show_points:
-            plt.plot(
+            ax.plot(
                 polygon[:, 0],  # x-coordinates.
                 polygon[:, 1],  # y-coordinates.
                 'bo',  # Styling (blue, circles).
                 markersize=1
             )
 
-    plt.gca().set_aspect('equal', adjustable='box')
+    #ax.gca().set_aspect('equal', adjustable='box')
+    # Make ax have the same ratio as the image.
+    ax.set_aspect('equal', adjustable='box')
 
 
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/nami.jpg"
+    IMAGE_PATH = "../TestImages/mikasaedge.jpg"
     data = cv2.imread(IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
     polygons = to_polygons(data)
-    draw_polygons(polygons, show_points=False, random_colors=False)
-    plt.grid()
+
+    # Plot the polygons and the original image
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    # Plot the polygons on the left subplot
+    draw_polygons(polygons, show_points=False, random_colors=False, ax=ax1)
+    ax1.grid()
+    ax1.title.set_text('Polygons')
+    # Plot the original image on the right subplot
+    ax2.imshow(data, cmap='gray')
+    ax2.title.set_text('Original Image')
+    # Show the figure
     plt.show()
