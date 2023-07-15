@@ -88,7 +88,7 @@ def draw_poly(poly, ax=plt, depth=0):
         draw_poly(child, ax, depth + 1)
 
 
-def draw_polygons(root, show_points=False, ax=plt, depth=0):
+def draw_polygons(root, ax=plt):
     for polygon in root.children:
         draw_poly(polygon, ax, 0)
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     # Plot the polygons and the original image
     fig, (ax1, ax2) = plt.subplots(1, 2)
     # Plot the polygons on the left subplot
-    draw_polygons(polygons, show_points=False, ax=ax1)
+    draw_polygons(polygons, ax=ax1)
     ax1.grid()
     ax1.title.set_text('Polygons')
     # Plot the original image on the right subplot

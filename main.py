@@ -17,6 +17,6 @@ edges = ED.edge_detect_live(image)
 polygons = RTV.to_polygons(edges)
 
 # Draw the polygons
-RTV.draw_polygons(polygons, show_points=False, ax=plt)
+RTV.draw_polygons(polygons, ax=plt)
 plt.grid()
 plt.show()
