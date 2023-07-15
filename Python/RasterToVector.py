@@ -44,14 +44,10 @@ def to_polygons(img):
     return polygons
 
 
-def draw_polygons(polygons, show_points=False, random_colors=False, ax=plt):
-    colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']  # Pretty sure there is a less lazy way to do this
+def draw_polygons(polygons, show_points=False, ax=plt):
     for polygon in polygons:
-        if random_colors:
-            color = colors[np.random.randint(0, len(colors))]
-        else:
-            color = 'r'
         polygon = np.array(polygon)
+        color = 'b'
         ax.plot(
             polygon[:, 0],  # x-coordinates.
             polygon[:, 1],  # y-coordinates.
@@ -71,20 +67,24 @@ def draw_polygons(polygons, show_points=False, random_colors=False, ax=plt):
                 markersize=1
             )
 
-    #ax.gca().set_aspect('equal', adjustable='box')
+    #
     # Make ax have the same ratio as the image.
-    ax.set_aspect('equal', adjustable='box')
+    try:
+        ax.set_aspect('equal', adjustable='box', anchor='C')
+    except:
+        ax.gca().set_aspect('equal', adjustable='box')
+
 
 
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/mikasaedge.jpg"
+    IMAGE_PATH = "../TestImages/circle.png"
     data = cv2.imread(IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
     polygons = to_polygons(data)
 
     # Plot the polygons and the original image
     fig, (ax1, ax2) = plt.subplots(1, 2)
     # Plot the polygons on the left subplot
-    draw_polygons(polygons, show_points=False, random_colors=False, ax=ax1)
+    draw_polygons(polygons, show_points=False, ax=ax1)
     ax1.grid()
     ax1.title.set_text('Polygons')
     # Plot the original image on the right subplot
