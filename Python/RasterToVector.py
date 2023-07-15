@@ -61,21 +61,9 @@ COLORS = ['b', 'r']         # Colors for the borders of the polygons
 FILL_COLORS = ['w', 'k']    # Colors for the fill of the polygons
 
 
-def draw_poly(poly, ax=plt, depth=0):
-    color = COLORS[depth % len(COLORS)]
+def draw_poly(poly, show_borders, ax=plt, depth=0):
     fill_color = FILL_COLORS[depth % len(FILL_COLORS) - 1]  # -1 since the first polygon doesn't count
     points = poly.points
-    ax.plot(
-        points[:, 0],  # x-coordinates.
-        points[:, 1],  # y-coordinates.
-        color + '-'  # Styling (blue, solid line).
-    )
-    # Draw a line between the first and last points.
-    ax.plot(
-        [points[0, 0], points[-1, 0]],  # x-coordinates of first and last points.
-        [points[0, 1], points[-1, 1]],  # y-coordinates of first and last points.
-        color + '-'  # Styling (blue, solid line).
-    )
 
     # Fill the polygon
     ax.fill(
@@ -85,12 +73,26 @@ def draw_poly(poly, ax=plt, depth=0):
     )
 
     for child in poly.children:
-        draw_poly(child, ax, depth + 1)
+        draw_poly(child, show_borders, ax, depth + 1)
+
+    if show_borders:
+        color = COLORS[depth % len(COLORS)]
+        ax.plot(
+            points[:, 0],  # x-coordinates.
+            points[:, 1],  # y-coordinates.
+            color + '-'  # Styling (blue, solid line).
+        )
+        # Draw a line between the first and last points.
+        ax.plot(
+            [points[0, 0], points[-1, 0]],  # x-coordinates of first and last points.
+            [points[0, 1], points[-1, 1]],  # y-coordinates of first and last points.
+            color + '-'  # Styling (blue, solid line).
+        )
 
 
-def draw_polygons(root, ax=plt):
+def draw_polygons(root, show_borders=True, ax=plt):
     for polygon in root.children:
-        draw_poly(polygon, ax, 0)
+        draw_poly(polygon, show_borders, ax, 0)
 
     # Make ax have the same ratio as the image.
     try:
@@ -107,7 +109,7 @@ if __name__ == "__main__":
     # Plot the polygons and the original image
     fig, (ax1, ax2) = plt.subplots(1, 2)
     # Plot the polygons on the left subplot
-    draw_polygons(polygons, ax=ax1)
+    draw_polygons(polygons, show_borders=True, ax=ax1)
     ax1.grid()
     ax1.title.set_text('Polygons')
     # Plot the original image on the right subplot
