@@ -44,10 +44,11 @@ def to_polygons(img):
     return polygons
 
 
-def draw_polygons(polygons, show_points=False, ax=plt):
+COLORS = ['b', 'r']
+def draw_polygons(polygons, show_points=False, ax=plt, depth=0):
+    color = COLORS[depth % 2]
     for polygon in polygons:
         polygon = np.array(polygon)
-        color = 'b'
         ax.plot(
             polygon[:, 0],  # x-coordinates.
             polygon[:, 1],  # y-coordinates.
@@ -59,6 +60,7 @@ def draw_polygons(polygons, show_points=False, ax=plt):
             [polygon[0, 1], polygon[-1, 1]],  # y-coordinates of first and last points.
             color + '-'  # Styling (blue, solid line).
         )
+        # ax.fill(polygon[:, 0], polygon[:, 1], color)
         if show_points:
             ax.plot(
                 polygon[:, 0],  # x-coordinates.
@@ -77,8 +79,8 @@ def draw_polygons(polygons, show_points=False, ax=plt):
 
 
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/circle.png"
-    data = cv2.imread(IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
+    IMAGE_PATH = "../TestImages/more_than_circle.png"
+    data = cv2.imread(IMAGE_PATH)
     polygons = to_polygons(data)
 
     # Plot the polygons and the original image
@@ -88,7 +90,7 @@ if __name__ == "__main__":
     ax1.grid()
     ax1.title.set_text('Polygons')
     # Plot the original image on the right subplot
-    ax2.imshow(data, cmap='gray')
+    ax2.imshow(data)
     ax2.title.set_text('Original Image')
     # Show the figure
     plt.show()
