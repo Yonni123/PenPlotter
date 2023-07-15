@@ -4,6 +4,30 @@ import cv2
 import matplotlib.pyplot as plt
 
 
+class Polygon:
+    def __init__(self, points):
+        self.points = points
+        self.children = ()
+
+
+# A recursive function that decomposes a curve into polygons
+# The recursion takes care of the children of the curve
+def decompose_to_polygons(parent, curve):
+    points = []
+    for segment in curve:
+        c = segment.c
+        e = segment.end_point
+        points.append(c)
+        points.append(e)
+    points = np.array(points)
+
+    p = Polygon(points)
+    parent.children += (p,)
+
+    for child in curve.children:
+        decompose_to_polygons(p, child)
+
+
 def to_polygons(img):
     if len(img.shape) == 3:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -27,55 +51,52 @@ def to_polygons(img):
     # This will make it easy for the pen plotter to draw the image
     # All it needs to do is, for each polygon, move the pen to all the points in the polygon
     # Lift the pen, move to the next polygon, and repeat
-
-    polygons = []
-    for curve in path:
-        polygon = []
-        for segment in curve:
-            if segment.is_corner:
-                c = segment.c
-                e = segment.end_point
-                polygon.append(c)
-                polygon.append(e)
-            else:
-                pass  # Since we sat alphamax to 0, all curves should be corners
-        polygons.append(polygon)
-
-    return polygons
+    root = Polygon(())
+    for curve in path.curves_tree:
+        decompose_to_polygons(root, curve)
+    return root
 
 
-COLORS = ['b', 'r']
-def draw_polygons(polygons, show_points=False, ax=plt, depth=0):
-    color = COLORS[depth % 2]
-    for polygon in polygons:
-        polygon = np.array(polygon)
-        ax.plot(
-            polygon[:, 0],  # x-coordinates.
-            polygon[:, 1],  # y-coordinates.
-            color + '-'  # Styling (blue, solid line).
-        )
-        # Draw a line between the first and last points.
-        ax.plot(
-            [polygon[0, 0], polygon[-1, 0]],  # x-coordinates of first and last points.
-            [polygon[0, 1], polygon[-1, 1]],  # y-coordinates of first and last points.
-            color + '-'  # Styling (blue, solid line).
-        )
-        # ax.fill(polygon[:, 0], polygon[:, 1], color)
-        if show_points:
-            ax.plot(
-                polygon[:, 0],  # x-coordinates.
-                polygon[:, 1],  # y-coordinates.
-                'bo',  # Styling (blue, circles).
-                markersize=1
-            )
+COLORS = ['b', 'r']         # Colors for the borders of the polygons
+FILL_COLORS = ['w', 'k']    # Colors for the fill of the polygons
 
-    #
+
+def draw_poly(poly, ax=plt, depth=0):
+    color = COLORS[depth % len(COLORS)]
+    fill_color = FILL_COLORS[depth % len(FILL_COLORS) - 1]  # -1 since the first polygon doesn't count
+    points = poly.points
+    ax.plot(
+        points[:, 0],  # x-coordinates.
+        points[:, 1],  # y-coordinates.
+        color + '-'  # Styling (blue, solid line).
+    )
+    # Draw a line between the first and last points.
+    ax.plot(
+        [points[0, 0], points[-1, 0]],  # x-coordinates of first and last points.
+        [points[0, 1], points[-1, 1]],  # y-coordinates of first and last points.
+        color + '-'  # Styling (blue, solid line).
+    )
+
+    # Fill the polygon
+    ax.fill(
+        points[:, 0],  # x-coordinates.
+        points[:, 1],  # y-coordinates.
+        fill_color
+    )
+
+    for child in poly.children:
+        draw_poly(child, ax, depth + 1)
+
+
+def draw_polygons(root, show_points=False, ax=plt, depth=0):
+    for polygon in root.children:
+        draw_poly(polygon, ax, 0)
+
     # Make ax have the same ratio as the image.
     try:
         ax.set_aspect('equal', adjustable='box', anchor='C')
     except:
         ax.gca().set_aspect('equal', adjustable='box')
-
 
 
 if __name__ == "__main__":
