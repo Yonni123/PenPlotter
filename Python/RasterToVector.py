@@ -3,17 +3,18 @@ import potrace
 import cv2
 import matplotlib.pyplot as plt
 
+
 def to_polygons(img):
     if len(img.shape) == 3:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
         gray = img
-    data = gray > 128       # Convert to 2D boolean array
+    data = gray > 128  # Convert to 2D boolean array
     data = np.flipud(data)  # Flip the image vertically, since Potrace's origin is in the top-left corner
     bmp = potrace.Bitmap(data)
     path = bmp.trace(
         turdsize=0,
-        turnpolicy=potrace.POTRACE_TURNPOLICY_MINORITY,
+        turnpolicy=potrace.TURNPOLICY_MINORITY,
         alphamax=0,
         opticurve=1,
         opttolerance=0
@@ -32,8 +33,8 @@ def to_polygons(img):
         polygon = []
         for segment in curve:
             if segment.is_corner:
-                c = (segment.c.x, segment.c.y)
-                e = (segment.end_point.x, segment.end_point.y)
+                c = segment.c
+                e = segment.end_point
                 polygon.append(c)
                 polygon.append(e)
             else:
@@ -42,8 +43,9 @@ def to_polygons(img):
 
     return polygons
 
+
 def draw_polygons(polygons, show_points=False, random_colors=False, plt=plt):
-    colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']    # Pretty sure there is a less lazy way to do this
+    colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']  # Pretty sure there is a less lazy way to do this
     for polygon in polygons:
         if random_colors:
             color = colors[np.random.randint(0, len(colors))]
@@ -73,7 +75,7 @@ def draw_polygons(polygons, show_points=False, random_colors=False, plt=plt):
 
 
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/mikasaedge.jpg"
+    IMAGE_PATH = "../TestImages/nami.jpg"
     data = cv2.imread(IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
     polygons = to_polygons(data)
     draw_polygons(polygons, show_points=False, random_colors=False)

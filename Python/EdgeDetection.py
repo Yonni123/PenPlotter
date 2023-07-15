@@ -56,6 +56,9 @@ def edge_detect_live(image):
         if key == 27:  # 'Esc' key pressed
             break
 
+        if cv2.getWindowProperty('Canny Edge Detection', cv2.WND_PROP_VISIBLE) < 1:
+            break
+
     threshold2 = 2 * threshold1
 
     # Perform edge detection with the updated threshold values
