@@ -102,7 +102,7 @@ def draw_polygons(root, show_borders=True, ax=plt):
 
 
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/more_than_circle.png"
+    IMAGE_PATH = "../TestImages/mikasaedge.jpg"
     data = cv2.imread(IMAGE_PATH)
     polygons = to_polygons(data)
 
