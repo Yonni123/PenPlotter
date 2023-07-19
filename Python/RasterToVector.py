@@ -11,10 +11,9 @@ class Polygon:
 
 
 def add_vertical_lines(img):
-    # Double the width of the image
-    img = cv2.resize(img, (img.shape[1] * 2, img.shape[0]))
-    # Add vertical lines
-    for i in range(1, img.shape[1], 2):
+    for i in range(img.shape[1]):
+        if i % 2 == 0:
+            continue
         img[:, i] = 255
     return img
 
@@ -38,15 +37,16 @@ def decompose_to_polygons(parent, curve):
 
 
 def to_polygons(img, fill=False):
+    img_copy = img.copy()   # Don't modify the original image
     if len(img.shape) == 3:
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(img_copy, cv2.COLOR_BGR2GRAY)
     else:
-        gray = img
-    data = gray < 250  # Convert to 2D boolean array
+        gray = img_copy
+    data = gray < 200  # Convert to 2D boolean array
     data = np.flipud(data)  # Flip the image vertically, since Potrace's origin is in the top-left corner
     bmp = potrace.Bitmap(data)
     path = bmp.trace(
-        turdsize=2,
+        turdsize=0,
         turnpolicy=potrace.TURNPOLICY_MINORITY,
         alphamax=0,
         opticurve=1,
@@ -65,11 +65,8 @@ def to_polygons(img, fill=False):
         decompose_to_polygons(root, curve)
 
     if fill:
-        img_with_lines = add_vertical_lines(img)
+        img_with_lines = add_vertical_lines(img_copy)
         root2_children = to_polygons(img_with_lines, fill=False).children
-        scale = np.array([[0.5, 0], [0, 1]])
-        for child in root2_children:
-            child.points = child.points.dot(scale)
         root.children += root2_children
 
     return root
@@ -128,7 +125,7 @@ def scale_polygons(root, scale):
 
 
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/mikasaedge.jpg"
+    IMAGE_PATH = "../TestImages/namiedges.png"
     data = cv2.imread(IMAGE_PATH)
     polygons = to_polygons(data, fill=True)
     # Plot the polygons and the original image
