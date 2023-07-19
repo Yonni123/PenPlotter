@@ -10,6 +10,15 @@ class Polygon:
         self.children = ()
 
 
+def add_vertical_lines(img):
+    # Double the width of the image
+    img = cv2.resize(img, (img.shape[1] * 2, img.shape[0]))
+    # Add vertical lines
+    for i in range(1, img.shape[1], 2):
+        img[:, i] = 255
+    return img
+
+
 # A recursive function that decomposes a curve into polygons
 # The recursion takes care of the children of the curve
 def decompose_to_polygons(parent, curve):
@@ -28,7 +37,7 @@ def decompose_to_polygons(parent, curve):
         decompose_to_polygons(p, child)
 
 
-def to_polygons(img):
+def to_polygons(img, fill=False):
     if len(img.shape) == 3:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
@@ -54,6 +63,15 @@ def to_polygons(img):
     root = Polygon(())
     for curve in path.curves_tree:
         decompose_to_polygons(root, curve)
+
+    if fill:
+        img_with_lines = add_vertical_lines(img)
+        root2_children = to_polygons(img_with_lines, fill=False).children
+        scale = np.array([[0.5, 0], [0, 1]])
+        for child in root2_children:
+            child.points = child.points.dot(scale)
+        root.children += root2_children
+
     return root
 
 
@@ -110,10 +128,9 @@ def scale_polygons(root, scale):
 
 
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/more_than_circle.png"
+    IMAGE_PATH = "../TestImages/mikasaedge.jpg"
     data = cv2.imread(IMAGE_PATH)
-    polygons = to_polygons(data)
-
+    polygons = to_polygons(data, fill=True)
     # Plot the polygons and the original image
     fig, (ax1, ax2) = plt.subplots(1, 2)
     # Plot the polygons on the left subplot
