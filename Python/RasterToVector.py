@@ -33,11 +33,11 @@ def to_polygons(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
         gray = img
-    data = gray < 128  # Convert to 2D boolean array
+    data = gray < 250  # Convert to 2D boolean array
     data = np.flipud(data)  # Flip the image vertically, since Potrace's origin is in the top-left corner
     bmp = potrace.Bitmap(data)
     path = bmp.trace(
-        turdsize=0,
+        turdsize=2,
         turnpolicy=potrace.TURNPOLICY_MINORITY,
         alphamax=0,
         opticurve=1,
@@ -61,19 +61,21 @@ COLORS = ['b', 'r']         # Colors for the borders of the polygons
 FILL_COLORS = ['w', 'k']    # Colors for the fill of the polygons
 
 
-def draw_poly(poly, show_borders, ax=plt, depth=0):
-    fill_color = FILL_COLORS[depth % len(FILL_COLORS) - 1]  # -1 since the first polygon doesn't count
+def draw_poly(poly, show_borders, show_filling, ax=plt, depth=0):
+
     points = poly.points
 
     # Fill the polygon
-    ax.fill(
-        points[:, 0],  # x-coordinates.
-        points[:, 1],  # y-coordinates.
-        fill_color
-    )
+    if show_filling:
+        fill_color = FILL_COLORS[depth % len(FILL_COLORS) - 1]  # -1 since the first polygon doesn't count
+        ax.fill(
+            points[:, 0],  # x-coordinates.
+            points[:, 1],  # y-coordinates.
+            fill_color
+        )
 
     for child in poly.children:
-        draw_poly(child, show_borders, ax, depth + 1)
+        draw_poly(child, show_borders, show_filling, ax, depth + 1)
 
     if show_borders:
         color = COLORS[depth % len(COLORS)]
@@ -90,9 +92,9 @@ def draw_poly(poly, show_borders, ax=plt, depth=0):
         )
 
 
-def draw_polygons(root, show_borders=True, ax=plt):
+def draw_polygons(root, show_borders=True, show_filling=True, ax=plt):
     for polygon in root.children:
-        draw_poly(polygon, show_borders, ax, 0)
+        draw_poly(polygon, show_borders, show_filling, ax, 0)
 
     # Make ax have the same ratio as the image.
     try:
@@ -101,15 +103,21 @@ def draw_polygons(root, show_borders=True, ax=plt):
         ax.gca().set_aspect('equal', adjustable='box')
 
 
+def scale_polygons(root, scale):
+    for polygon in root.children:
+        polygon.points *= scale
+        scale_polygons(polygon, scale)
+
+
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/mikasaedge.jpg"
+    IMAGE_PATH = "../TestImages/more_than_circle.png"
     data = cv2.imread(IMAGE_PATH)
     polygons = to_polygons(data)
 
     # Plot the polygons and the original image
     fig, (ax1, ax2) = plt.subplots(1, 2)
     # Plot the polygons on the left subplot
-    draw_polygons(polygons, show_borders=True, ax=ax1)
+    draw_polygons(polygons, show_borders=True, show_filling=False, ax=ax1)
     ax1.grid()
     ax1.title.set_text('Polygons')
     # Plot the original image on the right subplot
