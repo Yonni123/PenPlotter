@@ -10,6 +10,14 @@ class Polygon:
         self.children = ()
 
 
+class Drawing:
+    def __init__(self, polygons):
+        self.polygons = polygons
+        self.fillings = ()
+        self.bounds = ()
+        
+
+
 def add_vertical_lines(img):
     for i in range(img.shape[1]):
         if i % 2 == 0:
@@ -38,6 +46,10 @@ def decompose_to_polygons(parent, curve):
 
 def to_polygons(img, fill=False):
     img_copy = img.copy()   # Don't modify the original image
+    # Scale up the image so that the longest dimension is 1200 pixels and the aspect ratio is preserved
+    biggest_dim = max(img_copy.shape)
+    scale_factor = 1200 / biggest_dim
+    img_copy = cv2.resize(img_copy, None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_AREA)
     if len(img.shape) == 3:
         gray = cv2.cvtColor(img_copy, cv2.COLOR_BGR2GRAY)
     else:
@@ -118,14 +130,46 @@ def draw_polygons(root, show_borders=True, show_filling=True, ax=plt):
         ax.gca().set_aspect('equal', adjustable='box')
 
 
+def get_bounds(root):
+    # Since root contains the biggest polygons, we don't need to check the child polygons
+    xmin = np.inf
+    xmax = -np.inf
+    ymin = np.inf
+    ymax = -np.inf
+    for polygon in root.children:
+        xmin = min(xmin, np.min(polygon.points[:, 0]))
+        xmax = max(xmax, np.max(polygon.points[:, 0]))
+        ymin = min(ymin, np.min(polygon.points[:, 1]))
+        ymax = max(ymax, np.max(polygon.points[:, 1]))
+
+    return xmin, xmax, ymin, ymax
+
+
 def scale_polygons(root, scale):
     for polygon in root.children:
         polygon.points *= scale
         scale_polygons(polygon, scale)
 
 
+def translate_polygons(root, x, y):
+    for polygon in root.children:
+        polygon.points[:, 0] += x
+        polygon.points[:, 1] += y
+        translate_polygons(polygon, x, y)
+
+
+def adjust_polygons_bounds(root, xmin, xmax, ymin, ymax):
+    current_xmin, current_xmax, current_ymin, current_ymax = get_bounds(root)
+    xdiff = xmax - xmin
+    ydiff = ymax - ymin
+    scale = min(xdiff / (current_xmax - current_xmin), ydiff / (current_ymax - current_ymin))
+    scale_polygons(root, scale)
+    translate_polygons(root, xmin - current_xmin, ymin - current_ymin)
+    return root
+
+
 if __name__ == "__main__":
-    IMAGE_PATH = "../TestImages/namiedges.png"
+    IMAGE_PATH = "../TestImages/levi_edge.png"
     data = cv2.imread(IMAGE_PATH)
     polygons = to_polygons(data, fill=True)
     # Plot the polygons and the original image

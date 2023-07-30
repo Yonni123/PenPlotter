@@ -2,7 +2,8 @@ import Python.RasterToVector as RTV
 
 
 def header(pen_up):
-    return """G28 X Y Z; home all axes
+    return """M107 ;Turn off fan
+G28 X Y Z; home all axes
 G0 Z""" + str(pen_up) + """ F6000 ;Move Z to pen up position
 """
 
