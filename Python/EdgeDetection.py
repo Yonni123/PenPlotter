@@ -20,6 +20,14 @@ def update_threshold(val):
 
     cv2.imshow('Canny Edge Detection', edges)
 
+
+def update_threshold2(val):
+    global original_image
+    threshold = cv2.getTrackbarPos('Threshold', 'Threshold')
+    _, thresholded = cv2.threshold(original_image, threshold, 255, cv2.THRESH_BINARY)
+    cv2.imshow('Threshold', thresholded)
+
+
 def edge_detect_live(image):
     global original_image
     if len(image.shape) == 3:   # If the image is not grayscale, convert it to grayscale
@@ -76,6 +84,49 @@ def edge_detect_live(image):
 
     return edges
 
+
+def threshold_live(image):
+    global original_image
+    if len(image.shape) == 3:   # If the image is not grayscale, convert it to grayscale
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Create a window
+    cv2.namedWindow('Threshold', cv2.WINDOW_NORMAL)
+
+    # Resize the window to fit the screen
+    height = 800
+    width = int(image.shape[1] / image.shape[0] * height)
+    cv2.resizeWindow('Threshold', width, height)
+
+    # Create a trackbar for threshold value
+    cv2.createTrackbar('Threshold', 'Threshold', 0, 255, update_threshold2)
+
+    # Perform initial edge detection
+    threshold = cv2.getTrackbarPos('Threshold', 'Threshold')
+    _, thresholded = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
+    cv2.imshow('Threshold', thresholded)
+    original_image = image
+
+    # Wait until the user presses 'Esc' key
+    while True:
+        key = cv2.waitKey(1)
+        try:
+            threshold = cv2.getTrackbarPos('Threshold', 'Threshold')
+        except:
+            break
+        if key == 27:  # 'Esc' key pressed
+            break
+
+        if cv2.getWindowProperty('Threshold', cv2.WND_PROP_VISIBLE) < 1:
+            break
+
+    # Perform edge detection with the updated threshold values
+    _, thresholded = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
+
+    # Close all windows
+    cv2.destroyAllWindows()
+
+    return thresholded
 
 if __name__ == "__main__":
     input_image = "../TestImages/nami.jpg"
