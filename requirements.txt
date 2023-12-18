@@ -1,0 +1,4 @@
+pip install opencv-python
+sudo apt install git python3-dev python3-pip build-essential libagg-dev libpotrace-dev pkg-config
+pip install pypotrace
+pip install matplotlib

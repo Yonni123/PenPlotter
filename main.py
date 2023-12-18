@@ -4,7 +4,7 @@ from Python.RasterToVector import to_polygons, draw_polygons, scale_polygons, ge
 import matplotlib.pyplot as plt
 from Python.GCodeGenerator import get_gcode
 
-IMAGE_PATH = "TestImages/NamiWanted.jpg"
+IMAGE_PATH = "TestImages/LEVI.jpg"
 
 # Load the image
 image = cv2.imread(IMAGE_PATH)
@@ -20,7 +20,7 @@ scale_polygons(polygons, 0.17)
 # Get the bounds of the polygons
 min_x, max_x, min_y, max_y = get_bounds(polygons)
 print("min_x: " + str(min_x) + ", max_x: " + str(max_x) + ", min_y: " + str(min_y) + ", max_y: " + str(max_y))
-adjust_polygons_bounds(polygons, 70, 235, 40, 235)
+adjust_polygons_bounds(polygons, 66, 135, 199, 225)
 min_x, max_x, min_y, max_y = get_bounds(polygons)
 print("min_x: " + str(min_x) + ", max_x: " + str(max_x) + ", min_y: " + str(min_y) + ", max_y: " + str(max_y))
 
